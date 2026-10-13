@@ -4,6 +4,17 @@
 
 ### Fixed
 
+- **Minecraft starts and downloads again**
+  ([#322](https://github.com/Wyze3306/BedrockOnLinux/issues/322)). Since
+  2026-10-12 every PLAY ended at once with `request error: error decoding
+  response body for url (https://licensing.mp.microsoft.com/v7.0/licenses/content)`.
+  Microsoft changed the format of the sign-in token the licence request
+  carries, and the licensing service refused the old way of sending it
+  (`401 InvalidMsaTicketFormat`), so the content key that decrypts the game
+  never arrived. The downloader now sends the token in the form the service
+  accepts. A refused licence request also says why now, with the HTTP status
+  and Microsoft's reason, instead of "error decoding response body".
+
 - **Old versions of server resource packs no longer pile up.** Every pack
   version a server sends stays unpacked in the prefix's
   `Temp/Minecraft Bedrock/minecraftpe/packcache`. On Windows the system's
