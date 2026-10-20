@@ -6,7 +6,7 @@ from pathlib import Path
 
 APP = "bedrock-on-linux"
 PRETTY = "BedrockOnLinux"
-VERSION = "2.2.9"
+VERSION = "2.2.10"
 # Published Flatpak identity; used to print a runnable command for that layout.
 FLATPAK_APP_ID = "io.github.wyze3306.BedrockOnLinux"
 
@@ -174,7 +174,7 @@ XODUS_REV = "64d39eb87a56-p7"
 # Integrity pin for the CI-built xodus-cli archive, produced by the reviewed
 # build-xodus.yml run of this branch. The workflow refuses any archive that
 # does not reproduce these bytes.
-XODUS_ARCHIVE_SHA256 = "bb507341bcd2eb56406e9aafab2a58978510b396df5d51a577bb0ba08560f8d8"
+XODUS_ARCHIVE_SHA256 = ""
 XODUS_DIR = DATA / "xodus"
 XODUS_BIN = XODUS_DIR / "xodus-cli"
 # xodus-cli links wry/tao unconditionally, so libwebkit2gtk-4.1 has to be

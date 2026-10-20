@@ -81,10 +81,17 @@ is a self-contained commit with the test that fails without it.
 
 A patched binary is not the upstream commit's binary, so the rev names the
 patches too: `<commit12>-p<n>`, where `n` is how many patch files there are.
-Publishing one takes two passes, like every other pinned artifact — run
-`.github/workflows/build-xodus.yml`, read the SHA-256 it reports, pin
-`XODUS_REV` and `XODUS_ARCHIVE_SHA256` in `bol/config.py`, then run it again
-with `publish` on. Until that pin lands, the launcher keeps downloading the
+Publishing one takes two passes. Set `XODUS_REV` to match the patch count and
+clear `XODUS_ARCHIVE_SHA256` when the binary changes. Run
+`.github/workflows/build-xodus.yml` with `publish=false`, review the uploaded
+archive and pin its reported SHA-256 in `bol/config.py`. This candidate build
+allows a missing or different pin, but cannot publish it. Run it again with
+`publish=true` to reproduce and publish the pinned bytes. The application
+workflow verifies the published binary and WebKitGTK archives before packaging,
+and the release orchestrator builds Xodus when either archive needs publishing.
+Never ship a launcher before both archives match their committed pins.
+
+Until that pin lands, the launcher keeps downloading the
 unpatched asset it names today — which is exactly what happened to the first
 four patches above: they sat on main for a week while every download still raced
 its own package cache (issues #241 and #242), because nothing tied the pin

@@ -1,5 +1,10 @@
 # Changelog
 
+## 2.2.10
+
+— Fixed checks that the Minecraft downloader is available before releasing the launcher.
+— Fixed building an updated Minecraft downloader for review before publication.
+
 ## Unreleased
 
 ### Fixed
