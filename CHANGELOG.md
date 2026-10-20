@@ -4,6 +4,7 @@
 
 — Fixed checks that the Minecraft downloader is available before releasing the launcher.
 — Fixed building an updated Minecraft downloader for review before publication.
+— Added automatic publication of the Minecraft downloader and launcher after merging downloader updates.
 
 ## Unreleased
 

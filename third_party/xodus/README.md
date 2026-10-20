@@ -89,7 +89,11 @@ allows a missing or different pin, but cannot publish it. Run it again with
 `publish=true` to reproduce and publish the pinned bytes. The application
 workflow verifies the published binary and WebKitGTK archives before packaging,
 and the release orchestrator builds Xodus when either archive needs publishing.
-Never ship a launcher before both archives match their committed pins.
+Merging Xodus configuration, patch or build changes into main automatically
+rebuilds and publishes the pinned archives. A successful push-triggered Xodus
+workflow then starts the release orchestrator, which verifies the dependencies
+and publishes the launcher. Failed or candidate-only builds do not start a
+release. Never ship a launcher before both archives match their committed pins.
 
 The first four patches sat on main for a week while users still downloaded
 the old binary and raced its package cache (issues #241 and #242).
