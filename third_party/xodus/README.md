@@ -91,13 +91,10 @@ workflow verifies the published binary and WebKitGTK archives before packaging,
 and the release orchestrator builds Xodus when either archive needs publishing.
 Never ship a launcher before both archives match their committed pins.
 
-Until that pin lands, the launcher keeps downloading the
-unpatched asset it names today — which is exactly what happened to the first
-four patches above: they sat on main for a week while every download still raced
-its own package cache (issues #241 and #242), because nothing tied the pin
-back to the directory. `ci.yml` now checks that `XODUS_REV` names the patch
-set on the branch, so a patch added here fails the build until it is built and
-pinned.
+The first four patches sat on main for a week while users still downloaded
+the old binary and raced its package cache (issues #241 and #242).
+`ci.yml` checks that `XODUS_REV` names the patch set on the branch, and the
+application workflow also verifies that the matching archive is published.
 
 ## The WebKitGTK runtime beside it
 

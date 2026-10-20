@@ -174,7 +174,7 @@ XODUS_REV = "64d39eb87a56-p7"
 # Integrity pin for the CI-built xodus-cli archive, produced by the reviewed
 # build-xodus.yml run of this branch. The workflow refuses any archive that
 # does not reproduce these bytes.
-XODUS_ARCHIVE_SHA256 = ""
+XODUS_ARCHIVE_SHA256 = "7cedf6b45e5389a62b2ad84c2b9cb0cd218eab3e85962e516e364395c441f64f"
 XODUS_DIR = DATA / "xodus"
 XODUS_BIN = XODUS_DIR / "xodus-cli"
 # xodus-cli links wry/tao unconditionally, so libwebkit2gtk-4.1 has to be
