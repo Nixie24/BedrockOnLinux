@@ -15,15 +15,6 @@
 name: Build xodus-cli
 
 on:
-  push:
-    branches: [main]
-    paths:
-      - bol/config.py
-      - third_party/xodus/**
-      - scripts/build-xodus-cli.sh
-      - scripts/build-xodus-webview.sh
-      - scripts/pin-apt-snapshot.sh
-      - .github/workflows/build-xodus.yml
   workflow_call:
     inputs:
       publish:
@@ -139,7 +130,7 @@ jobs:
       - name: Assert the build matches the pinned SHA-256
         id: build
         env:
-          PUBLISH: ${{ github.event_name == 'push' || inputs.publish }}
+          PUBLISH: ${{ inputs.publish }}
         run: |
           rev="$(grep -m1 '^XODUS_REV = ' bol/config.py | cut -d'"' -f2)"
           pin="$(grep -m1 '^XODUS_ARCHIVE_SHA256 = ' bol/config.py | cut -d'"' -f2)"
@@ -217,7 +208,7 @@ jobs:
           retention-days: 7
 
       - name: Attest build provenance
-        if: ${{ github.event_name == 'push' || inputs.publish }}
+        if: ${{ inputs.publish }}
         uses: actions/attest-build-provenance@e8998f949152b193b063cb0ec769d69d929409be # v2
         with:
           subject-path: |
@@ -225,7 +216,7 @@ jobs:
             ${{ env.WEBVIEW_TARBALL }}
 
       - name: Publish the xodus-cli release
-        if: ${{ github.event_name == 'push' || inputs.publish }}
+        if: ${{ inputs.publish }}
         uses: softprops/action-gh-release@3bb12739c298aeb8a4eeaf626c5b8d85266b0e65 # v2
         with:
           tag_name: xodus-${{ env.REV }}

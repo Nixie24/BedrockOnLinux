@@ -25,10 +25,16 @@
 name: Release
 
 on:
-  workflow_run:
-    workflows: [Build xodus-cli]
-    types: [completed]
+  push:
     branches: [main]
+    paths:
+      - bol/config.py
+      - third_party/xodus/**
+      - scripts/build-xodus-cli.sh
+      - scripts/build-xodus-webview.sh
+      - scripts/pin-apt-snapshot.sh
+      - .github/workflows/build-xodus.yml
+      - .github/workflows/release.yml
   workflow_dispatch:
     inputs:
       publish:
@@ -47,7 +53,6 @@ permissions:
 
 jobs:
   resolve:
-    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push') }}
     runs-on: ubuntu-24.04
     env:
       GH_TOKEN: ${{ github.token }}
@@ -119,7 +124,7 @@ jobs:
           bv="$(needs_build "$vtag" "vkd3d-universal-3.0.1-nv-dgc.tar.gz" "")"
           if [ "${{ github.event_name }}" = "schedule" ]; then
             channel=nightly; publish=true
-          elif [ "${{ github.event_name }}" = "workflow_run" ]; then
+          elif [ "${{ github.event_name }}" = "push" ]; then
             channel=release; publish=true
           else
             channel=release; publish="$PUBLISH_INPUT"
