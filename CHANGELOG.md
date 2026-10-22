@@ -33,6 +33,15 @@
   Xbox-style gamepad (or, with Steam Input on, only Steam's virtual pad
   does). `BOL_HIDRAW=all` turns it off.
 
+- **The fullscreen fix, the virtual-desktop bridge and DLL injection run
+  on systems without libunwind**
+  ([#324](https://github.com/Wyze3306/BedrockOnLinux/issues/324)). These
+  small Windows programs run with the engine's Wine beside the game, but
+  without the engine's own libraries, so on a system that has no
+  `libunwind.so.8` of its own, such as Guix, each one stopped at once with
+  "could not load ntdll.so". A fullscreen start then stayed stretched or
+  framed. They now get the same libraries as the game.
+
 - **A refused Microsoft sign-in is no longer blamed on the Xbox profile**
   ([#331](https://github.com/Wyze3306/BedrockOnLinux/issues/331)). When
   Microsoft refuses the sign-in saved on the computer, PLAY said "Xbox Live
