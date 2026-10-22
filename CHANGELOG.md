@@ -22,6 +22,13 @@
   accepts. A refused licence request also says why now, with the HTTP status
   and Microsoft's reason, instead of "error decoding response body".
 
+- **Drop-down lists are readable in the light theme**
+  ([#332](https://github.com/Wyze3306/BedrockOnLinux/issues/332)). On a
+  dark desktop, the list a drop-down opens, such as **Graphics card**, kept
+  the desktop's dark background under the light theme's dark text. Those
+  lists, right-click menus and tooltips now take the launcher's own colours,
+  in either theme and on any desktop.
+
 - **Old versions of server resource packs no longer pile up.** Every pack
   version a server sends stays unpacked in the prefix's
   `Temp/Minecraft Bedrock/minecraftpe/packcache`. On Windows the system's

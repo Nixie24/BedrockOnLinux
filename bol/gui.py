@@ -428,6 +428,27 @@ class Theme:
             color: {self.accent};
         }}
         QListWidget::item:hover {{ background: {self.card3}; }}
+        /* A combo box's list, a context menu and a tooltip are windows of
+           their own. Under the transparent QWidget rule they paint no
+           background, so the desktop's palette shows behind the theme's
+           text: dark under dark text once the light theme is on (#332). */
+        QComboBox QAbstractItemView, QMenu {{
+            background: {self.card};
+            color: {self.fg};
+            border: 1px solid {self.border};
+            outline: none;
+            selection-background-color: {self.accent_dim};
+            selection-color: {self.accent};
+        }}
+        QMenu::item {{ padding: 5px 18px; background: transparent; }}
+        QMenu::item:selected {{ background: {self.accent_dim}; color: {self.accent}; }}
+        QMenu::item:disabled {{ color: {self.muted}; }}
+        QToolTip {{
+            background: {self.card};
+            color: {self.fg};
+            border: 1px solid {self.border};
+            padding: 3px 5px;
+        }}
         QProgressBar {{
             background: {self.card2};
             border-radius: 4px;
