@@ -33,6 +33,13 @@
   Xbox-style gamepad (or, with Steam Input on, only Steam's virtual pad
   does). `BOL_HIDRAW=all` turns it off.
 
+- **A refused Microsoft sign-in is no longer blamed on the Xbox profile**
+  ([#331](https://github.com/Wyze3306/BedrockOnLinux/issues/331)). When
+  Microsoft refuses the sign-in saved on the computer, PLAY said "Xbox Live
+  rejected this Microsoft account" and sent people to xbox.com to fix a
+  profile Xbox Live had never been asked about. It now says the saved
+  sign-in was refused and to sign out and sign in again.
+
 - **Drop-down lists are readable in the light theme**
   ([#332](https://github.com/Wyze3306/BedrockOnLinux/issues/332)). On a
   dark desktop, the list a drop-down opens, such as **Graphics card**, kept

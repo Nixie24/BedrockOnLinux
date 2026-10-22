@@ -237,6 +237,15 @@ _XBL_PREAUTH_MESSAGES = {
         "finish creating or verifying the Xbox profile and accept any "
         "requested terms, then sign out and sign in again."
     ),
+    # Microsoft's token endpoint answered, and refused the saved refresh
+    # token (invalid_grant): Xbox Live was never asked anything, so its
+    # profile advice would send people to fix an account nothing is wrong
+    # with.
+    "signin": (
+        "Microsoft no longer accepts the sign-in saved on this computer, so "
+        "Xbox Live could not be asked for a session. Sign out in the "
+        "launcher, sign in again, then click PLAY."
+    ),
     "network": (
         "Xbox Live could not be reached. Check the Internet connection, DNS, "
         "VPN or proxy and firewall, then try again."
@@ -266,6 +275,7 @@ _XBL_PREAUTH_DIAGNOSTIC_PRIORITY = {
     "local": 40,
     "session": 40,
     "account": 50,
+    "signin": 50,
     "age": 60,
 }
 
@@ -824,7 +834,7 @@ def xbl_preauth(msa_access_token, expected_account_epoch=None,
 
     ``refresh_unreachable`` tells the caller's Microsoft token refresh failed
     on transport rather than being rejected, so a missing access token is
-    reported as an unreachable service instead of a bad account.
+    reported as an unreachable service instead of a refused sign-in.
     """
     import base64, uuid as _uuid
     _clear_xbl_preauth_diagnostic()
@@ -908,7 +918,7 @@ def xbl_preauth(msa_access_token, expected_account_epoch=None,
         return _fallback("xbl_preauth: no fresh Microsoft access token; cannot "
                          "refresh the Xbox multiplayer chain.",
                          "microsoft-token",
-                         "network" if refresh_unreachable else "account")
+                         "network" if refresh_unreachable else "signin")
     try:
         from cryptography.hazmat.primitives.asymmetric import ec
         from cryptography.hazmat.primitives import hashes, serialization

@@ -123,7 +123,10 @@ class PreauthFailureDiagnosticTests(unittest.TestCase):
         self.assertEqual(diagnostic["category"], "network")
         self.assertIn("Internet connection", auth.xbl_preauth_error_message())
 
-    def test_a_rejected_token_still_points_at_the_account(self):
+    def test_a_rejected_token_asks_for_a_new_sign_in(self):
+        """Microsoft refusing the saved token is not an Xbox profile problem:
+        Xbox Live was never reached (#331)."""
+
         with tempfile.TemporaryDirectory() as td:
             with mock.patch.object(auth, "DATA", Path(td)), \
                     mock.patch.object(auth, "warn"), \
@@ -133,7 +136,13 @@ class PreauthFailureDiagnosticTests(unittest.TestCase):
 
         diagnostic = auth.xbl_preauth_diagnostic()
         self.assertEqual(diagnostic["stage"], "microsoft-token")
-        self.assertEqual(diagnostic["category"], "account")
+        self.assertEqual(diagnostic["category"], "signin")
+        with mock.patch("bol.network.clock_is_unsynchronized",
+                        return_value=True):
+            message = auth.xbl_preauth_error_message()
+        self.assertIn("Sign out in the launcher, sign in again", message)
+        self.assertNotIn("Xbox profile", message)
+        self.assertNotIn("clock", message)
 
     def test_accessor_returns_a_copy(self):
         self.run_failure(OSError("offline"))
