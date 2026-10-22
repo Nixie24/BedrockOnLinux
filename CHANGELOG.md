@@ -22,6 +22,17 @@
   accepts. A refused licence request also says why now, with the HTTP status
   and Microsoft's reason, instead of "error decoding response body".
 
+- **DualSense and DualShock 4 controllers work in the game**
+  ([#57](https://github.com/Wyze3306/BedrockOnLinux/issues/57)). In the
+  game, a PlayStation controller only moved the mouse with its touchpad,
+  with or without Steam Input: Wine handed Minecraft the controller's raw
+  Sony input, which the game does not read as a gamepad. The settings the
+  launcher used to turn that off only work with Proton's own Wine, not with
+  the engine the launcher installs. PLAY now sets the option this engine
+  reads, so the controller goes through SDL and reaches the game as an
+  Xbox-style gamepad (or, with Steam Input on, only Steam's virtual pad
+  does). `BOL_HIDRAW=all` turns it off.
+
 - **Drop-down lists are readable in the light theme**
   ([#332](https://github.com/Wyze3306/BedrockOnLinux/issues/332)). On a
   dark desktop, the list a drop-down opens, such as **Graphics card**, kept

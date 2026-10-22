@@ -51,7 +51,8 @@ from .gpu_safety import (
     require_safe_graphics_session,
     retire_idle_current_boot_marker,
 )
-from .hidraw import keep_non_controllers_off_hidraw
+from .hidraw import (keep_non_controllers_off_hidraw,
+                     playstation_pads_through_sdl)
 from .inject import start_auto_inject
 from .log import BolError, die, info, ok, warn
 from .ntsync import inproc_sync_problem
@@ -572,7 +573,9 @@ def _configure_runtime_compat(env, settings, backend, host_wayland,
             env["WINE_DISABLE_VULKAN_OPWR"] = "1"
 
     # GDK-Proton disables Steam Input under Wine-Wayland; HID filtering there
-    # would leave no usable controller.
+    # would leave no usable controller. Both variables are read by Proton's
+    # own wine, so they only reach a custom engine: the managed engine's
+    # winebus takes the registry option bol.hidraw writes instead (#57).
     if backend != "wayland" and _steam_input_available(source):
         # Hide only Sony raw interfaces when Steam supplies its virtual pad.
         env["PROTON_DISABLE_HIDRAW"] = _SONY_STEAM_INPUT_HIDRAW_IDS
@@ -766,6 +769,7 @@ def _launch_once(lock_fds=(), on_started=None, notices=None, editor=False):
         warn(f"GameInput check failed ({e}) — continuing.")
     try:
         keep_non_controllers_off_hidraw(active_prefix())
+        playstation_pads_through_sdl(active_prefix())
     except Exception as e:
         warn(f"HID device check failed ({e}); continuing.")
     # Xbox Live is required for Realms, servers, the Marketplace and Friends —
