@@ -1388,6 +1388,14 @@ def wine_apply_winegdk_prereqs():
             r"Software\Microsoft\WindowsRuntime\ActivatableClassId"
             r"\Windows.Storage.Pickers.FileSavePicker",
             "DllPath", r"C:\windows\system32\windows.storage.dll"),
+        # A build that asks for a newer Gaming Services than the engine's
+        # 6247 is refused at GDKC_InitAPI, and the game quits with exit 0
+        # before its window opens: Preview 1.26.70 asks for 7849 (#274).
+        # Without this value the engine's check reads an uninitialised
+        # variable, so the same build started or not from one launch to the
+        # next, and always started with Wine tracing on.
+        reg_dword(r"Software\Microsoft\GamingServices",
+                  "IgnoreVersionMismatch", 1),
     ]
     # Azure rejects Wine GnuTLS' TLS 1.3 handshake (7-byte fatal Alert →
     # 0x80090304); forcing TLS 1.2 via DefaultSecureProtocols lets the

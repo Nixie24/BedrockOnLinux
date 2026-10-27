@@ -11,6 +11,29 @@
 
 ### Fixed
 
+- **PLAY reaches the game about a second sooner.** Every launch rewrote a
+  handful of values in the Wine registry and rescanned the whole of
+  `system.reg` for each one, about 100,000 lines in a played-in prefix: over
+  a second on its own. The file is now read into its sections once. The
+  Microsoft token refresh, a round trip that nothing needs until the Xbox
+  sign-in, also runs while the prefix is prepared instead of before it.
+  Measured from PLAY to the game process: about 2.4 s before, 1 s after.
+
+- **A missing system locale that costs seconds at every start is named.**
+  The Steam Linux Runtime always needs `en_US.UTF-8` beside the player's own
+  locale, and when the system lacks one it rebuilds them all at each launch:
+  3 to 6 seconds more before the game window on a French desktop with only
+  `fr_FR.UTF-8` installed. PLAY now says which locale is missing and how to
+  add it once.
+
+- **Minecraft Preview 1.26.70 starts more often**
+  ([#274](https://github.com/Wyze3306/BedrockOnLinux/issues/274)). It asks
+  for a newer Gaming Services than the engine reports and quit at once,
+  without a window or a message, on some launches and not others. The
+  engine's own switch for ignoring that check is now set in the prefix. Its
+  check also reads an uninitialised size, so the switch is not read on every
+  launch yet: that part needs an engine update.
+
 - **A licence Microsoft refuses is reported instead of PLAY doing nothing**
   ([#345](https://github.com/Wyze3306/BedrockOnLinux/issues/345)). When the
   licensing service answered with something other than a licence, the game
