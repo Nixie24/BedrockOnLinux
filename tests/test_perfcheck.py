@@ -21,6 +21,17 @@ from bol import launch, perfcheck
 
 
 _Usage = namedtuple("_Usage", "total used free")
+# Kept before setUpModule replaces it for the rest of the module.
+_real_locale_available = perfcheck.locale_available
+
+
+def setUpModule():
+    # Whether this host has the container's locales is not what the other
+    # tests are about; ContainerLocaleTests asks it directly.
+    patcher = mock.patch.object(perfcheck, "locale_available",
+                                return_value=True)
+    patcher.start()
+    unittest.addModuleCleanup(patcher.stop)
 
 _OPTIONS_RELATIVE = (
     "drive_c/users/steamuser/AppData/Roaming/Minecraft Bedrock/Users/"
@@ -658,3 +669,49 @@ class LaunchWiringTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ContainerLocaleTests(unittest.TestCase):
+    """A locale the host lacks is rebuilt by pressure-vessel at every launch."""
+
+    def _problem(self, environ, present, flatpak=False):
+        with tempfile.TemporaryDirectory() as td:
+            info = Path(td) / ".flatpak-info"
+            if flatpak:
+                info.write_text("[Application]\n")
+            return perfcheck.container_locale_problem(
+                environ, available=lambda name: name in present,
+                flatpak_info=info)
+
+    def test_a_missing_en_us_is_named_with_the_fix(self):
+        problem = self._problem({"LANG": "fr_FR.UTF-8"}, {"fr_FR.UTF-8"})
+        self.assertIn("en_US.UTF-8", problem)
+        self.assertNotIn("fr_FR", problem)
+        self.assertIn("locale-gen", problem)
+
+    def test_the_players_own_locale_counts_too(self):
+        problem = self._problem({"LANG": "de_DE.UTF-8"}, {"en_US.UTF-8"})
+        self.assertIn("de_DE.UTF-8", problem)
+
+    def test_quiet_when_everything_is_there_or_cannot_be_helped(self):
+        both = {"en_US.UTF-8", "fr_FR.UTF-8"}
+        self.assertIsNone(self._problem({"LANG": "fr_FR.UTF-8"}, both))
+        self.assertIsNone(self._problem({"LANG": "C.UTF-8"}, {"en_US.UTF-8"}))
+        self.assertIsNone(self._problem({"LANG": "fr_FR.UTF-8"}, set(),
+                                        flatpak=True))
+        self.assertIsNone(self._problem(
+            {"LANG": "fr_FR.UTF-8", "PRESSURE_VESSEL_GENERATE_LOCALES": "0"},
+            set()))
+
+    def test_an_unknown_answer_says_nothing(self):
+        self.assertIsNone(perfcheck.container_locale_problem(
+            {"LANG": "fr_FR.UTF-8"}, available=lambda _name: None,
+            flatpak_info=Path("/nonexistent/.flatpak-info")))
+
+    def test_glibc_is_asked_without_changing_this_process(self):
+        import locale
+        before = locale.setlocale(locale.LC_CTYPE)
+        self.assertIn(_real_locale_available("C.UTF-8"), (True, None))
+        self.assertIn(_real_locale_available("xx_NOWHERE.UTF-8"),
+                      (False, None))
+        self.assertEqual(locale.setlocale(locale.LC_CTYPE), before)
