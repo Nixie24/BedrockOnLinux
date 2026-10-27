@@ -1,13 +1,12 @@
 # Changelog
 
-## 2.2.10
+## 2.2.10 — 2026-10-27
 
-— Fixed Microsoft Store sign-in, Minecraft downloads and launches by pinning the patched downloader.
-— Fixed checks that the Minecraft downloader is available before releasing the launcher.
-— Fixed building an updated Minecraft downloader for review before publication.
-— Added automatic publication of the Minecraft downloader and launcher after merging downloader updates.
-
-## Unreleased
+Minecraft starts and downloads again after Microsoft changed its sign-in
+token, and Minecraft Preview 1.26.70 starts on the new engine, native21.
+PLAY reaches the game sooner and says why when Microsoft refuses the
+licence, PlayStation controllers work in the game, and old server resource
+packs no longer fill the disk.
 
 ### Fixed
 
@@ -112,6 +111,17 @@
   temporary files. The newest version of every pack stays, so nothing a
   server sends today is lost. On that prefix this frees 4.2 GB once the
   week has passed.
+
+### Packaging
+
+- **Engine native21.** It differs from native20 only in xgameruntime's
+  Gaming Services version check (WineGDK patch `0012`). Built and attested
+  by the release workflow: archive
+  `e98512e74b1c3f930fdd213b24ac4a01abfa3a6336276076a509530c540b2b13`.
+- The Minecraft downloader is the reviewed `64d39eb87a56-p7`, and the
+  release workflow checks that it is published before it releases the
+  launcher. Downloader updates are built for review first, then published
+  together with the launcher once they are merged.
 
 ## 2.2.9 — 2026-10-09
 
