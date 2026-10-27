@@ -138,7 +138,7 @@ WINEGDK_BUILD_REV = "wow64-archs-native21"
 # uninitialised variables (#274).
 WINEGDK_ARCHIVE_SHA256 = "2f30533b249954438bf6b425631539c8d8036261ce25cffa0d1ea5d30f1d3e27"
 # Build workflows verify this deterministic intermediate before reusing it.
-WINEGDK_PREFIX_SHA256 = "e76d21e706dec9775a41b176b48e69dade034a8248b6f4b9a169dc4c336e2600"
+WINEGDK_PREFIX_SHA256 = "06510f8fd802f6c8663c56221983d1f1fbd2d80dbece4818fe83692fa5040ab4"
 
 SELF_REPO = WINEGDK_PREBUILT_REPO
 
