@@ -1256,6 +1256,13 @@ class RefusedLicenceLaunchTests(ReadyLaunchHarness, unittest.TestCase):
             self._play([LICENCE_UNREACHABLE])
         self.assertEqual(str(raised.exception), LICENCE_UNREACHABLE)
 
+    def test_a_licence_the_service_refused_ends_the_launch(self):
+        from bol.gamesetup import LICENCE_SERVICE_REFUSED
+        hit = LICENCE_SERVICE_REFUSED + " (HTTP 401). Link it again."
+        with self.assertRaises(launch.BolError) as raised:
+            self._play(["Out of memory (RAM/VRAM).", hit])
+        self.assertEqual(str(raised.exception), hit)
+
     def test_any_other_diagnosis_leaves_the_launch_to_return(self):
         self.assertEqual(self._play(["Out of memory (RAM/VRAM)."]), 0)
         self.assertEqual(self._play([]), 0)
@@ -1781,3 +1788,27 @@ class XcurlLogTests(ReadyLaunchHarness, unittest.TestCase):
 
     def test_an_ordinary_session_leaves_the_game_folder_alone(self):
         self.assertEqual(self._play(diagnostics=False), (False, True))
+
+
+class InjectionOnWineD3DTests(unittest.TestCase):
+    """Injected clients draw through Direct3D 12, which Legacy bypasses (#291)."""
+
+    def _warned(self, settings):
+        with mock.patch.object(launch, "warn") as warn:
+            said = launch._warn_injection_on_wined3d(settings)
+        self.assertEqual(said, warn.called)
+        return said
+
+    def test_auto_injection_on_legacy_is_explained(self):
+        self.assertTrue(self._warned(
+            {"injector_auto_enable": True, "renderer": "opengl"}))
+        self.assertTrue(self._warned(
+            {"injector_auto_enable": True,
+             "custom_env": "PROTON_USE_WINED3D=1"}))
+
+    def test_nothing_is_said_otherwise(self):
+        self.assertFalse(self._warned(
+            {"injector_auto_enable": True, "renderer": "auto"}))
+        self.assertFalse(self._warned(
+            {"injector_auto_enable": False, "renderer": "opengl"}))
+        self.assertFalse(self._warned(None))

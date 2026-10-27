@@ -41,7 +41,8 @@ from .fixups import (
     hide_signin_button,
 )
 from .gameinput import install_gameinput
-from .gamesetup import LICENCE_REFUSED, LICENCE_UNREACHABLE, diagnose
+from .gamesetup import (LICENCE_REFUSED, LICENCE_SERVICE_REFUSED,
+                        LICENCE_UNREACHABLE, diagnose)
 from .gpu_safety import (
     acknowledge_gpu_crash_command,
     arm_gpu_launch,
@@ -196,6 +197,27 @@ def _renders_through_wined3d(settings):
         return custom["PROTON_USE_WINED3D"] not in ("", "0")
     renderer = str(settings.get("renderer", "auto")).strip().lower()
     return renderer in _WINED3D_RENDERERS
+
+
+def _warn_injection_on_wined3d(settings):
+    """Say once per launch that injected clients draw nothing on WineD3D.
+
+    Flarial and the clients like it draw their menu and HUD by hooking the
+    game's Direct3D 12 swap chain. The Legacy compatibility renderer runs the
+    game on Direct3D 11 through WineD3D, so they inject and load, and nothing
+    of theirs appears (#291).
+    """
+    settings = settings or {}
+    if not settings.get("injector_auto_enable", False):
+        return False
+    if not _renders_through_wined3d(settings):
+        return False
+    warn("Automatic DLL injection is on with the Legacy compatibility "
+         "renderer. Clients such as Flarial draw their menu and HUD through "
+         "Direct3D 12, which Legacy does not use, so they load without "
+         "showing anything. Turn Legacy off in Settings if this GPU has "
+         "Vulkan 1.3.")
+    return True
 
 
 def _requested_frame_rate(environ=None):
@@ -1051,6 +1073,7 @@ def _launch_once(lock_fds=(), on_started=None, notices=None, editor=False):
         # it: a direct-launch shortcut and Game Mode both come through
         # `bol play`, which has no GUI worker to hang the watcher off.
         try:
+            _warn_injection_on_wined3d(s)
             start_auto_inject(s)
         except Exception as inject_error:
             warn("Automatic DLL injection could not be started (%s)."
@@ -1223,6 +1246,10 @@ def _launch_once(lock_fds=(), on_started=None, notices=None, editor=False):
         raise BolError(LICENCE_REFUSED)
     if LICENCE_UNREACHABLE in hits:
         raise BolError(LICENCE_UNREACHABLE)
+    refused = next((h for h in hits
+                    if h.startswith(LICENCE_SERVICE_REFUSED)), None)
+    if refused:
+        raise BolError(refused)
     return rc
 
 

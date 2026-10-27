@@ -11,6 +11,26 @@
 
 ### Fixed
 
+- **A licence Microsoft refuses is reported instead of PLAY doing nothing**
+  ([#345](https://github.com/Wyze3306/BedrockOnLinux/issues/345)). When the
+  licensing service answered with something other than a licence, the game
+  never started and the launcher came back without a word. PLAY now ends
+  with the refusal, Microsoft's reason when the downloader gives one, and
+  what to do about it.
+
+- **The launcher no longer hides while the game runs on an ordinary
+  desktop** ([#293](https://github.com/Wyze3306/BedrockOnLinux/issues/293)).
+  It took any `GAMESCOPE*` property on the display's root window for Steam
+  Game Mode and stepped aside, but the Steam client leaves its own
+  `GAMESCOPECTRL_*` properties there on a normal desktop too. Only the
+  properties Gamescope itself writes count now.
+
+- **Injected clients on the Legacy renderer**
+  ([#291](https://github.com/Wyze3306/BedrockOnLinux/issues/291)). Flarial
+  and similar clients draw through Direct3D 12, which the Legacy
+  compatibility renderer does not use, so their menu never appeared. PLAY now
+  says so when automatic injection is on with Legacy.
+
 - **Minecraft starts and downloads again**
   ([#322](https://github.com/Wyze3306/BedrockOnLinux/issues/322)). Since
   2026-10-12 every PLAY ended at once with `request error: error decoding

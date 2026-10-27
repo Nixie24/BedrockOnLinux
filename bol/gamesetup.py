@@ -111,6 +111,34 @@ _LICENCE_UNREACHABLE = (
     r"error sending request)")
 
 
+# The licensing service answered, and the answer was not a licence (#345).
+# xodus-cli up to -p5 printed only that it could not decode the body; -p7
+# names the HTTP status and Microsoft's reason. Either way the game never
+# started, and the launcher came back as if PLAY had done nothing.
+LICENCE_SERVICE_REFUSED = (
+    "Microsoft's licensing service refused the licence Minecraft needs to "
+    "start, so the game never opened")
+_LICENCE_SERVICE_REFUSAL = re.compile(
+    r"the licensing service refused the request \(([^)\n]{1,40})\):?[ \t]*"
+    r"([^\n]{0,160})|"
+    r"error decoding response body for url \(https://licensing\.mp\."
+    r"microsoft\.com", re.I)
+
+
+def _licence_service_refusal(text):
+    """The hit for a licence the service refused, or None."""
+    match = _LICENCE_SERVICE_REFUSAL.search(text)
+    if not match:
+        return None
+    status, reason = match.group(1), (match.group(2) or "").strip()
+    detail = f" ({status}{': ' + reason if reason else ''})" if status else ""
+    return (f"{LICENCE_SERVICE_REFUSED}{detail}. In Settings ▸ Accounts, "
+            "unlink the Store account and link it again with the account "
+            "that owns Minecraft, then click PLAY. If the licence is refused "
+            "again, update the launcher and attach minecraft.log to a bug "
+            "report.")
+
+
 # DRM devices, for telling a virtual GPU from a real one (#302).
 DRM_SYSFS = Path("/sys/class/drm")
 
@@ -262,6 +290,11 @@ def diagnose():
     if LICENCE_UNREACHABLE in hits:
         hits = [h for h in hits if not h.startswith(
             "Microsoft sign-in failed in-game")]
+    # A full device group is refused through the same service, and that
+    # message already says what to do about it.
+    refusal = _licence_service_refusal(text)
+    if refusal and LICENCE_REFUSED not in hits:
+        hits.append(refusal)
     # Positive evidence wins: if the engine logged its XUser patches or a
     # successful pre-auth, WineGDK XUser IS present — drop any "no XUser" hit so
     # a benign HRESULT elsewhere can't tell the user to reinstall a working

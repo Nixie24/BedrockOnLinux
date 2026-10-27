@@ -117,6 +117,35 @@ class GameCrashDiagnosisTests(unittest.TestCase):
             "remove a device and try again\n")
         self.assertIn(gamesetup.LICENCE_REFUSED, hits)
 
+    def test_a_licence_the_service_refused_is_named_with_its_reason(self):
+        # #345: the game never started and the launcher said nothing. The
+        # -p5 downloader could only say it failed to decode the answer.
+        hits = self._diagnose(
+            "appxmanifest.xml: 73994240 4913\n"
+            "request error: error decoding response body for url "
+            "(https://licensing.mp.microsoft.com/v7.0/licenses/content)\n")
+        refused = [h for h in hits
+                   if h.startswith(gamesetup.LICENCE_SERVICE_REFUSED)]
+        self.assertEqual(len(refused), 1, hits)
+        self.assertIn("Store account", refused[0])
+        # -p7 names the status and Microsoft's reason, and so does the hit.
+        hits = self._diagnose(
+            "request error: the licensing service refused the request "
+            "(HTTP 401): InvalidMsaTicketFormat: There was a problem parsing "
+            "the request\n")
+        refused = [h for h in hits
+                   if h.startswith(gamesetup.LICENCE_SERVICE_REFUSED)]
+        self.assertEqual(len(refused), 1, hits)
+        self.assertIn("(HTTP 401: InvalidMsaTicketFormat:", refused[0])
+
+    def test_a_full_device_group_keeps_its_own_advice(self):
+        hits = self._diagnose(
+            "request error: the licensing service refused the request "
+            "(HTTP 403): not entitled to this content: Device group is full\n")
+        self.assertIn(gamesetup.LICENCE_REFUSED, hits)
+        self.assertFalse(any(h.startswith(gamesetup.LICENCE_SERVICE_REFUSED)
+                             for h in hits), hits)
+
     def test_a_licence_fetched_without_a_network_is_named(self):
         # What xodus-cli printed with the network down (#308): a Store build
         # cannot be decrypted without the key Microsoft hands out per launch.
