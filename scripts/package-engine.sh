@@ -325,6 +325,7 @@ WINEGDK_NATIVE_PROVENANCE_FILES=(
   0009-xgameruntime-support-IXSystemImpl2-5-and-stub-XSystemHandleTrack.patch
   0010-windows.storage-implement-the-file-save-picker.patch
   0011-winewayland-bind-wl_seat-no-newer-than-the-pointer-listener.patch
+  0012-xgameruntime-run-titles-that-target-a-newer-gaming-services.patch
 )
 
 verify_sha256() {
@@ -374,10 +375,10 @@ verify_winegdk_source_provenance() {
     "ee0543f11737a11f5edec389967bb41482c7f5eda3807c24d171dd6bf6301274" \
     "WineGDK r12 source delta"
   verify_sha256 "$native_root/README.md" \
-    "5a5e3dc34df9dd17b6c7732081e75e9260161602e7cb14cd570cced065b0ece5" \
+    "e15f91396351a13de5f3bae93d7fc9595cd3a3af60bf93a4c153f2b481db7bd6" \
     "WineGDK native5 source-delta README"
   verify_sha256 "$native_root/SOURCE-SHA256SUMS" \
-    "954afa1bc968c36cd8379ea9a53a318261944d5e1dbeaceeba58e0c63fc3c432" \
+    "cc7c569a8938496eb42b0ce1446c82221a90dd65f03c79227061c879a6e8cbee" \
     "WineGDK native5 source hash lock"
   verify_sha256 \
     "$native_root/0001-winegdk-native5-Xbox-and-file-picker-runtime.patch" \
@@ -423,6 +424,10 @@ verify_winegdk_source_provenance() {
     "$native_root/0011-winewayland-bind-wl_seat-no-newer-than-the-pointer-listener.patch" \
     "ed550ec1c78d581fbd21d25da429b9b37fb137e19df7128056cb2ec5340a5c59" \
     "WineGDK Wayland seat version"
+  verify_sha256 \
+    "$native_root/0012-xgameruntime-run-titles-that-target-a-newer-gaming-services.patch" \
+    "d43c0f2cf32b624bb12d6db890d6f9a3a45e72523837310d868bec78318f59ce" \
+    "WineGDK Gaming Services version"
 }
 
 has_marker() {
@@ -910,6 +915,7 @@ for relative_root, names in (
         "native5/0009-xgameruntime-support-IXSystemImpl2-5-and-stub-XSystemHandleTrack.patch",
         "native5/0010-windows.storage-implement-the-file-save-picker.patch",
         "native5/0011-winewayland-bind-wl_seat-no-newer-than-the-pointer-listener.patch",
+        "native5/0012-xgameruntime-run-titles-that-target-a-newer-gaming-services.patch",
     )),
     (gdk_proton_provenance_root, ("provenance.env",)),
 ):

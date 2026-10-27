@@ -26,13 +26,15 @@
   `fr_FR.UTF-8` installed. PLAY now says which locale is missing and how to
   add it once.
 
-- **Minecraft Preview 1.26.70 starts more often**
+- **Minecraft Preview 1.26.70 starts**
   ([#274](https://github.com/Wyze3306/BedrockOnLinux/issues/274)). It asks
   for a newer Gaming Services than the engine reports and quit at once,
-  without a window or a message, on some launches and not others. The
-  engine's own switch for ignoring that check is now set in the prefix. Its
-  check also reads an uninitialised size, so the switch is not read on every
-  launch yet: that part needs an engine update.
+  without a window or a message, on some launches and not others: the switch
+  that skips that check was read through uninitialised variables. Engine
+  native21 reads it correctly and no longer refuses such a build at all; it
+  notes the difference in the log and lets the game start. Measured: the
+  Preview's window opened on 7 launches out of 7, against 0 out of 5
+  before.
 
 - **A licence Microsoft refuses is reported instead of PLAY doing nothing**
   ([#345](https://github.com/Wyze3306/BedrockOnLinux/issues/345)). When the

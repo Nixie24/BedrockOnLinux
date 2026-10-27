@@ -55,6 +55,10 @@ WAYLAND_SEAT_PATCH = (
     DELTA / "0011-winewayland-bind-wl_seat-no-newer-than-the-pointer-"
             "listener.patch"
 )
+GAMING_SERVICES_PATCH = (
+    DELTA / "0012-xgameruntime-run-titles-that-target-a-newer-gaming-"
+            "services.patch"
+)
 SOURCE_SUMS = DELTA / "SOURCE-SHA256SUMS"
 CHANGED_FILES = {
     "dlls/combase/combase.c",
@@ -167,6 +171,10 @@ class WineGdkSourceDeltaTests(unittest.TestCase):
             self._constant("VENDORED_WAYLAND_SEAT_PATCH_SHA256"),
         )
         self.assertEqual(
+            hashlib.sha256(GAMING_SERVICES_PATCH.read_bytes()).hexdigest(),
+            self._constant("VENDORED_GAMING_SERVICES_PATCH_SHA256"),
+        )
+        self.assertEqual(
             hashlib.sha256(SOURCE_SUMS.read_bytes()).hexdigest(),
             self._constant("SOURCE_SHA256SUMS_SHA256"),
         )
@@ -189,7 +197,8 @@ class WineGdkSourceDeltaTests(unittest.TestCase):
         mapped_fd = (MAPPED_FD_PATCH.read_text() + PATH_MAP_PATCH.read_text()
                      + XSYSTEM_PATCH.read_text()
                      + SAVE_PICKER_PATCH.read_text()
-                     + WAYLAND_SEAT_PATCH.read_text())
+                     + WAYLAND_SEAT_PATCH.read_text()
+                     + GAMING_SERVICES_PATCH.read_text())
         self.assertTrue(text.startswith(f"From {WINEGDK_SOURCE_COMMIT} "))
         changed = {
             left for left, right in re.findall(
@@ -809,6 +818,27 @@ class WineGdkSourceDeltaTests(unittest.TestCase):
         self.assertIn("version < WAYLAND_SEAT_VERSION ?", additions)
         self.assertIn("-                                         version < 8 ? "
                       "version : 8);", text)
+
+    def test_a_newer_gaming_services_target_does_not_stop_the_title(self):
+        # #274: Preview 1.26.70 asks for Gaming Services 7849 and quit before
+        # its window, on some launches only: the switch that skips the check
+        # was read through uninitialised variables.
+        text = GAMING_SERVICES_PATCH.read_text()
+        additions = "\n".join(
+            line[1:] for line in text.splitlines()
+            if line.startswith("+") and not line.startswith("+++")
+        )
+        removals = "\n".join(
+            line[1:] for line in text.splitlines()
+            if line.startswith("-") and not line.startswith("---")
+        )
+        self.assertIn("return E_GAMERUNTIME_VERSION_MISMATCH;", removals)
+        self.assertNotIn("E_GAMERUNTIME_VERSION_MISMATCH", additions)
+        self.assertIn("DWORD valueSize = sizeof(DWORD);", additions)
+        self.assertIn("DWORD value = 0;", additions)
+        self.assertIn("return result == ERROR_SUCCESS && value != 0;",
+                      additions)
+        self.assertNotIn("FAILED( result )", additions)
 
     def test_the_save_picker_is_what_every_export_activates(self):
         # #167: RoActivateInstance of this class failed with

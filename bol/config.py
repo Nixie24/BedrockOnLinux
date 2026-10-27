@@ -100,9 +100,9 @@ WINEGDK_OUT = PROTON_DIR / "GDK-Proton-xuser"
 # match the reviewed pins below.
 WINEGDK_PREBUILT_REPO = "Wyze3306/BedrockOnLinux"
 # The commit alone does not identify vendored follow-up patches.
-WINEGDK_SOURCE_MANIFEST_SHA256 = "954afa1bc968c36cd8379ea9a53a318261944d5e1dbeaceeba58e0c63fc3c432"
-WINEGDK_BUILD_REV = "wow64-archs-native20"
-# native20 carries the ntdll loader patches the Microsoft Store packages need:
+WINEGDK_SOURCE_MANIFEST_SHA256 = "cc7c569a8938496eb42b0ce1446c82221a90dd65f03c79227061c879a6e8cbee"
+WINEGDK_BUILD_REV = "wow64-archs-native21"
+# native21 carries the ntdll loader patches the Microsoft Store packages need:
 # 0007 maps the main image from a descriptor, 0008 from a path so it survives
 # the Steam Linux Runtime container. Their game executable stays encrypted on
 # disk, so an engine without them cannot start the game -- which is why an
@@ -130,6 +130,12 @@ WINEGDK_BUILD_REV = "wow64-archs-native20"
 # handles (0011). Built against Bullseye's libwayland, the listener has no
 # slot for the wheel event version 8 sends, and under the Wayland driver the
 # first turn of the mouse wheel aborted the game (#296).
+#
+# native21 lets a title built against a newer Gaming Services run (0012).
+# Minecraft Preview 1.26.70 asks for 7849, the runtime reports 6247, and the
+# version check refused it, so it quit before its window opened -- on some
+# launches only, because the switch that skips the check was read through
+# uninitialised variables (#274).
 WINEGDK_ARCHIVE_SHA256 = "2f30533b249954438bf6b425631539c8d8036261ce25cffa0d1ea5d30f1d3e27"
 # Build workflows verify this deterministic intermediate before reusing it.
 WINEGDK_PREFIX_SHA256 = "e76d21e706dec9775a41b176b48e69dade034a8248b6f4b9a169dc4c336e2600"

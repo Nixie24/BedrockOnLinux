@@ -45,8 +45,10 @@ readonly VENDORED_SAVE_PICKER_PATCH="$PROJECT_ROOT/third_party/winegdk-native5/0
 readonly VENDORED_SAVE_PICKER_PATCH_SHA256="6ec2431cd854c2ae9f47ca6936dff19b0309c82ad3f3bc3fdcd0a9361ecd511c"
 readonly VENDORED_WAYLAND_SEAT_PATCH="$PROJECT_ROOT/third_party/winegdk-native5/0011-winewayland-bind-wl_seat-no-newer-than-the-pointer-listener.patch"
 readonly VENDORED_WAYLAND_SEAT_PATCH_SHA256="ed550ec1c78d581fbd21d25da429b9b37fb137e19df7128056cb2ec5340a5c59"
+readonly VENDORED_GAMING_SERVICES_PATCH="$PROJECT_ROOT/third_party/winegdk-native5/0012-xgameruntime-run-titles-that-target-a-newer-gaming-services.patch"
+readonly VENDORED_GAMING_SERVICES_PATCH_SHA256="d43c0f2cf32b624bb12d6db890d6f9a3a45e72523837310d868bec78318f59ce"
 readonly SOURCE_SHA256SUMS="$PROJECT_ROOT/third_party/winegdk-native5/SOURCE-SHA256SUMS"
-readonly SOURCE_SHA256SUMS_SHA256="954afa1bc968c36cd8379ea9a53a318261944d5e1dbeaceeba58e0c63fc3c432"
+readonly SOURCE_SHA256SUMS_SHA256="cc7c569a8938496eb42b0ce1446c82221a90dd65f03c79227061c879a6e8cbee"
 readonly NTSYNC_UAPI_HEADER="$PROJECT_ROOT/third_party/linux-uapi/ntsync.h"
 readonly NTSYNC_UAPI_HEADER_SHA256="006437ee52a3e04f921df77081eb5c21c44c71f598b10ac534c6ef9e78296262"
 readonly GLIBC_CEILING="2.31"
@@ -572,6 +574,11 @@ fi
 [[ "$(sha256sum "$VENDORED_WAYLAND_SEAT_PATCH" | cut -d' ' -f1)" == \
     "$VENDORED_WAYLAND_SEAT_PATCH_SHA256" ]] ||
   die "vendored Wayland seat version patch SHA-256 mismatch"
+[[ -f "$VENDORED_GAMING_SERVICES_PATCH" ]] ||
+  die "vendored Gaming Services version patch is missing"
+[[ "$(sha256sum "$VENDORED_GAMING_SERVICES_PATCH" | cut -d' ' -f1)" == \
+    "$VENDORED_GAMING_SERVICES_PATCH_SHA256" ]] ||
+  die "vendored Gaming Services version patch SHA-256 mismatch"
 [[ "$SOURCE_DATE_EPOCH" == "$EXPECTED_SOURCE_DATE_EPOCH" ]] ||
   die "WineGDK source timestamp changed: $SOURCE_DATE_EPOCH"
 
@@ -623,6 +630,7 @@ vendored_path_map_patch_sha256=$VENDORED_PATH_MAP_PATCH_SHA256
 vendored_xsystem_patch_sha256=$VENDORED_XSYSTEM_PATCH_SHA256
 vendored_save_picker_patch_sha256=$VENDORED_SAVE_PICKER_PATCH_SHA256
 vendored_wayland_seat_patch_sha256=$VENDORED_WAYLAND_SEAT_PATCH_SHA256
+vendored_gaming_services_patch_sha256=$VENDORED_GAMING_SERVICES_PATCH_SHA256
 source_sha256sums_sha256=$SOURCE_SHA256SUMS_SHA256
 source_date_epoch=$SOURCE_DATE_EPOCH
 debian_suite=$DEBIAN_SUITE
@@ -705,6 +713,11 @@ git -C "$WORK_ROOT/source" apply --check "$VENDORED_WAYLAND_SEAT_PATCH" ||
   die "vendored Wayland seat version patch does not apply"
 git -C "$WORK_ROOT/source" apply "$VENDORED_WAYLAND_SEAT_PATCH" ||
   die "could not apply vendored Wayland seat version patch"
+printf '==> Applying the Gaming Services version fix\n'
+git -C "$WORK_ROOT/source" apply --check "$VENDORED_GAMING_SERVICES_PATCH" ||
+  die "vendored Gaming Services version patch does not apply"
+git -C "$WORK_ROOT/source" apply "$VENDORED_GAMING_SERVICES_PATCH" ||
+  die "could not apply vendored Gaming Services version patch"
 [[ -f "$SOURCE_SHA256SUMS" ]] || die "WineGDK source hash manifest is missing"
 [[ "$(sha256sum "$SOURCE_SHA256SUMS" | cut -d' ' -f1)" == \
     "$SOURCE_SHA256SUMS_SHA256" ]] ||
