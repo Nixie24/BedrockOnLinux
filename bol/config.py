@@ -136,7 +136,7 @@ WINEGDK_BUILD_REV = "wow64-archs-native21"
 # version check refused it, so it quit before its window opened -- on some
 # launches only, because the switch that skips the check was read through
 # uninitialised variables (#274).
-WINEGDK_ARCHIVE_SHA256 = "2f30533b249954438bf6b425631539c8d8036261ce25cffa0d1ea5d30f1d3e27"
+WINEGDK_ARCHIVE_SHA256 = "e98512e74b1c3f930fdd213b24ac4a01abfa3a6336276076a509530c540b2b13"
 # Build workflows verify this deterministic intermediate before reusing it.
 WINEGDK_PREFIX_SHA256 = "06510f8fd802f6c8663c56221983d1f1fbd2d80dbece4818fe83692fa5040ab4"
 
