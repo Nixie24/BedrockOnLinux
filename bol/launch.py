@@ -1,6 +1,7 @@
 """bol.launch — launching Minecraft through Proton/umu."""
 # SPDX-License-Identifier: MIT
 
+import concurrent.futures
 import math
 import os
 import shlex
@@ -741,6 +742,40 @@ def _prepare_launch_engine():
     return _prepare_graphics_engine()
 
 
+def _start_msa_refresh(tok):
+    """Begin trading ``tok`` for a fresh token; a future, or None."""
+    if not tok:
+        return None
+    pool = concurrent.futures.ThreadPoolExecutor(
+        max_workers=1, thread_name_prefix="msa-refresh")
+    try:
+        return pool.submit(msa_refresh, tok)
+    finally:
+        pool.shutdown(wait=False)
+
+
+def _finish_msa_refresh(refresh, tok, account_epoch):
+    """(fresh, token to use, refresh_unreachable) once ``refresh`` is done."""
+    if refresh is None:
+        return None, tok, False
+    fresh = None
+    # A transport failure here is the offline case, not a rejected account.
+    refresh_unreachable = False
+    try:
+        fresh = refresh.result()
+    except Exception as e:
+        refresh_unreachable = True
+        warn(f"Token refresh skipped ({e}) — using cached token.")
+    if fresh:
+        if not msa_save_for_account_epoch(
+                {"refresh_token": fresh["refresh_token"],
+                 "obtained": int(time.time())}, account_epoch):
+            die("The Microsoft account changed during launch; no stale "
+                "token was stored. Click PLAY again after signing in.")
+        tok = fresh["refresh_token"]
+    return fresh, tok, refresh_unreachable
+
+
 def _launch_once(lock_fds=(), on_started=None, notices=None, editor=False):
     s = load_settings()
     gd = s.get("game_dir")
@@ -765,35 +800,28 @@ def _launch_once(lock_fds=(), on_started=None, notices=None, editor=False):
 
     account, account_epoch = msa_session_snapshot()
     tok = account.get("refresh_token")
-    fresh = None
-    # A transport failure here is the offline case, not a rejected account.
-    refresh_unreachable = False
-    if tok:
+    # The token refresh is a round trip to Microsoft that nothing below needs
+    # until the Xbox pre-auth: it runs while the prefix is prepared.
+    refresh = _start_msa_refresh(tok)
+    try:
+        if not boot_prefix():
+            die("Could not initialise the managed Wine prefix safely.")
+        wine_apply_winegdk_prereqs()
+        _install_cryptbase_in_prefix()
         try:
-            fresh = msa_refresh(tok)
+            install_gameinput(active_prefix(), Path(gd))
         except Exception as e:
-            refresh_unreachable = True
-            warn(f"Token refresh skipped ({e}) — using cached token.")
-        if fresh:
-            if not msa_save_for_account_epoch(
-                    {"refresh_token": fresh["refresh_token"],
-                     "obtained": int(time.time())}, account_epoch):
-                die("The Microsoft account changed during launch; no stale "
-                    "token was stored. Click PLAY again after signing in.")
-            tok = fresh["refresh_token"]
-    if not boot_prefix():
-        die("Could not initialise the managed Wine prefix safely.")
-    wine_apply_winegdk_prereqs()
-    _install_cryptbase_in_prefix()
-    try:
-        install_gameinput(active_prefix(), Path(gd))
-    except Exception as e:
-        warn(f"GameInput check failed ({e}) — continuing.")
-    try:
-        keep_non_controllers_off_hidraw(active_prefix())
-        playstation_pads_through_sdl(active_prefix())
-    except Exception as e:
-        warn(f"HID device check failed ({e}); continuing.")
+            warn(f"GameInput check failed ({e}) — continuing.")
+        try:
+            keep_non_controllers_off_hidraw(active_prefix())
+            playstation_pads_through_sdl(active_prefix())
+        except Exception as e:
+            warn(f"HID device check failed ({e}); continuing.")
+    finally:
+        # Collected even when a step above failed: Microsoft may already have
+        # handed out a new refresh token, and it must not be dropped.
+        fresh, tok, refresh_unreachable = _finish_msa_refresh(
+            refresh, tok, account_epoch)
     # Xbox Live is required for Realms, servers, the Marketplace and Friends —
     # never for the game itself. Neither a missing account nor an unreachable
     # Xbox Live may keep single-player and LAN worlds from starting (#160).

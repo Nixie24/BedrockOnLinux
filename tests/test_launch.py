@@ -1812,3 +1812,74 @@ class InjectionOnWineD3DTests(unittest.TestCase):
         self.assertFalse(self._warned(
             {"injector_auto_enable": False, "renderer": "opengl"}))
         self.assertFalse(self._warned(None))
+
+
+class ParallelMsaRefreshTests(unittest.TestCase):
+    """The token refresh runs beside the prefix work, and is never dropped."""
+
+    def test_a_refreshed_token_is_saved_and_used(self):
+        saved = []
+        with mock.patch.object(launch, "msa_refresh",
+                               return_value={"refresh_token": "new",
+                                             "access_token": "a"}), \
+                mock.patch.object(launch, "msa_save_for_account_epoch",
+                                  side_effect=lambda data, epoch:
+                                  saved.append((data["refresh_token"], epoch))
+                                  or True):
+            future = launch._start_msa_refresh("old")
+            fresh, tok, unreachable = launch._finish_msa_refresh(
+                future, "old", "epoch-1")
+        self.assertEqual(tok, "new")
+        self.assertEqual(fresh["access_token"], "a")
+        self.assertFalse(unreachable)
+        self.assertEqual(saved, [("new", "epoch-1")])
+
+    def test_a_transport_failure_keeps_the_cached_token(self):
+        with mock.patch.object(launch, "msa_refresh",
+                               side_effect=OSError("offline")), \
+                mock.patch.object(launch, "warn"):
+            future = launch._start_msa_refresh("old")
+            fresh, tok, unreachable = launch._finish_msa_refresh(
+                future, "old", "epoch-1")
+        self.assertEqual((fresh, tok, unreachable), (None, "old", True))
+
+    def test_no_account_starts_nothing(self):
+        self.assertIsNone(launch._start_msa_refresh(None))
+        self.assertEqual(launch._finish_msa_refresh(None, None, "e"),
+                         (None, None, False))
+
+    def test_the_token_is_saved_even_when_the_prefix_fails(self):
+        saved = []
+
+        class Stop(Exception):
+            pass
+
+        with tempfile.TemporaryDirectory() as td:
+            game = Path(td)
+            (game / "Minecraft.Windows.exe").write_bytes(b"MZ")
+            patches = [
+                mock.patch.object(launch, "load_settings",
+                                  return_value={"game_dir": str(game)}),
+                mock.patch.object(launch, "proton_path", return_value=game),
+                mock.patch.object(launch, "_prepare_launch_engine"),
+                mock.patch.object(launch, "_warn_if_dgc_unavailable"),
+                mock.patch.object(launch, "_warn_if_inproc_sync_unavailable"),
+                mock.patch.object(launch, "_warn_if_performance_degraded"),
+                mock.patch.object(launch, "retire_idle_current_boot_marker"),
+                mock.patch.object(launch, "require_safe_graphics_session"),
+                mock.patch.object(launch, "msa_session_snapshot",
+                                  return_value=({"refresh_token": "old"},
+                                                "epoch-1")),
+                mock.patch.object(launch, "msa_refresh",
+                                  return_value={"refresh_token": "new"}),
+                mock.patch.object(launch, "msa_save_for_account_epoch",
+                                  side_effect=lambda data, epoch:
+                                  saved.append(data["refresh_token"]) or True),
+                mock.patch.object(launch, "boot_prefix", side_effect=Stop),
+            ]
+            for patch in patches:
+                patch.start()
+                self.addCleanup(patch.stop)
+            with self.assertRaises(Stop):
+                launch._launch_once()
+        self.assertEqual(saved, ["new"])
