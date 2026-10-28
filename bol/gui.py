@@ -4401,6 +4401,7 @@ def gui():
 
     app = QApplication.instance() or QApplication(sys.argv)
     app.setApplicationName(PRETTY)
+    app.setDesktopFileName("io.github.wyze3306.BedrockOnLinux")
     app.setStyle("Fusion")
     # "Close the launcher when Minecraft starts" closes the window while the
     # launch thread is still supervising the game; the process itself exits
